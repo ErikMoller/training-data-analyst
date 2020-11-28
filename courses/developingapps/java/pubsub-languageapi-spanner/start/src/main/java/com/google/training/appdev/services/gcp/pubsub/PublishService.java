@@ -16,31 +16,23 @@
 package com.google.training.appdev.services.gcp.pubsub;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-
-import com.google.cloud.ServiceOptions;
 import com.google.api.core.ApiFuture;
-import com.google.api.core.ApiFutures;
+import com.google.cloud.ServiceOptions;
 import com.google.cloud.pubsub.v1.Publisher;
-import com.google.cloud.pubsub.v1.TopicAdminClient;
 import com.google.protobuf.ByteString;
 import com.google.pubsub.v1.PubsubMessage;
 import com.google.pubsub.v1.TopicName;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-
 import com.google.training.appdev.services.gcp.domain.Feedback;
-
 import org.springframework.stereotype.Service;
-
-import java.io.IOException;
 
 
 @Service
 public class PublishService {
-    // TODO: Declare and initialize two Strings, PROJECT_ID and TOPIC_NAME
+    // TODO: Declare and initialize two Strings,
+    // PROJECT_ID and TOPIC_NAME
 
-    
+    private static final String PROJECT_ID = ServiceOptions.getDefaultProjectId();
+    private static final String TOPIC_NAME = "feedback";
 
     // END TODO
 
@@ -49,15 +41,16 @@ public class PublishService {
         ObjectMapper mapper = new ObjectMapper();
         String feedbackMessage = mapper.writeValueAsString(feedback);
 
-        // TODO: Create a TopicName object for the feedback topic in the project
+        // TODO: Create a TopicName object
+        // for the feedback topic in the project
 
-        
+        TopicName topicName = TopicName.create(PROJECT_ID, TOPIC_NAME);
 
         // END TODO
 
         // TODO: Declare a publisher for the topic
-        
-        
+
+        Publisher publisher = null;
 
         // END TODO
 
@@ -66,45 +59,50 @@ public class PublishService {
 
         try {
 
-            // TODO: Initialize the publisher using a builder and the topicName
+            // TODO: Initialize the publisher
+            // using a builder and the topicName
 
-            
-
-            // END TODO
-            
-            // TODO: Copy the serialized message to a byte string
-
-            
+            publisher = Publisher.defaultBuilder(topicName).build();
 
             // END TODO
 
-            // TODO: Create a Pub/Sub message using a builder; set the message data
+            // TODO: Copy the serialized message
+            // to a byte string
 
-            
+            ByteString data = ByteString.copyFromUtf8(feedbackMessage);
 
             // END TODO
 
-            // TODO: Publish the message, assign to the messageIdFuture
+            // TODO: Create a Pub/Sub message using a
+            // builder; set the message data
 
-            
+            PubsubMessage pubsubMessage = PubsubMessage.newBuilder().setData(data).build();
+
+            // END TODO
+
+            // TODO: Publish the message,
+            // assign to the messageIdFuture
+
+            messageIdFuture = publisher.publish(pubsubMessage);
 
             // END TODO
         
         } finally {
 
-            // TODO: Get the messageId from the messageIdFuture
+            // TODO: Get the messageId from
+            // the messageIdFuture
 
-            String messageId = "Replace string with: messageIdFuture.get();";
+            String messageId = messageIdFuture.get();
 
             // END TODO
 
             System.out.println("published with message ID: " + messageId);
 
-            // TODO: Shutdown the publisher to free up resources
-
-            
-            
-
+            // TODO: Shutdown the publisher
+            // to free up resources
+            if (publisher != null) {
+                publisher.shutdown();
+            }
             // END TODO
         }
 
