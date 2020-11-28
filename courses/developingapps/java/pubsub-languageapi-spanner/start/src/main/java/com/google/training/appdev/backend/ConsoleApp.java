@@ -56,13 +56,30 @@ public class ConsoleApp {
 
     // END TODO
 
-    // TODO: Create the Pub/Sub subscription name
+      // TODO: Create the Pub/Sub subscription name
 
-    
+      SubscriptionName subscription =
+              SubscriptionName.create(projectId,
+                      "worker1-subscription");
 
-    // END TODO
-    
-    // TODO: Create the subscriptionAdminClient
+      // END TODO
+
+      // TODO: Create the subscriptionAdminClient
+
+      try (SubscriptionAdminClient subscriptionAdminClient = SubscriptionAdminClient.create()) {
+
+          // TODO: create the Pub/Sub subscription
+          // using the subscription anema and topic
+
+          subscriptionAdminClient.createSubscription(
+                  subscription, topic,
+                  PushConfig.getDefaultInstance(), 0);
+
+          // END TODO
+
+      }
+
+      // END TODO
 
     
 
@@ -83,13 +100,13 @@ public class ConsoleApp {
         public void receiveMessage(PubsubMessage message, AckReplyConsumer consumer) {
             // TODO: Extract the message data as a JSON String
 
-            
+            String fb = message.getData().toStringUtf8();
 
             // END TODO
 
             // TODO: Ack the message
 
-            
+            consumer.ack();
 
             // END TODO
 
@@ -97,9 +114,14 @@ public class ConsoleApp {
                 // Object mapper deserializes the JSON String
                 ObjectMapper mapper = new ObjectMapper();
 
-                // TODO: Deserialize the JSON String representing the feedback
+                // TODO: Deserialize the JSON String
+                // representing the feedback
+                // Print out the feedback
 
-                
+                Feedback feedback = mapper.readValue(
+                        fb, Feedback.class);
+                System.out.println("Feedback received: "
+                        + feedback);
 
                 // END TODO
 
@@ -127,32 +149,43 @@ public class ConsoleApp {
         }
     };
 
-    // TODO: Declare a subscriber
+      // TODO: Declare a subscriber
 
-    
+      Subscriber subscriber = null;
 
-    // END TODO
+      // END TODO
 
     try {
 
-        // TODO: Initialize the subscriber using its default builder
+        // TODO: Initialize the subscriber using
+        // its default builder
         // with a subscription and receiver
 
-        
+        subscriber = Subscriber.defaultBuilder(
+                subscription, receiver).build();
 
         // END TODO
 
         // TODO: Add a listener to the subscriber
 
-        
-        
-
-
-
+        subscriber.addListener(
+                new Subscriber.Listener() {
+                    @Override
+                    public void failed(
+                            Subscriber.State from,
+                            Throwable failure) {
+                        System.err.println(failure);
+                    }
+                },
+                MoreExecutors.directExecutor());
 
         // END TODO
 
         // TODO: Start subscribing
+
+        subscriber.startAsync().awaitRunning();
+
+        // END TODO
 
         
         
@@ -164,10 +197,24 @@ public class ConsoleApp {
         System.in.read();
 
     } finally {
-        
+
         // TODO: Stop subscribing
 
-        
+        if (subscriber != null) {
+            subscriber.stopAsync().awaitTerminated();
+        }
+
+        // END TODO
+
+        // TODO: Delete the subscription
+
+        try (SubscriptionAdminClient
+                     subscriptionAdminClient =
+                     SubscriptionAdminClient.create()) {
+
+            subscriptionAdminClient.deleteSubscription(
+                    subscription);
+        }
 
         // END TODO
         
